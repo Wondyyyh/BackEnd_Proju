@@ -15,7 +15,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") { // check that POST data was submitte
 /* OK to proceed checking usert login  */
 
 include("db.php");
-$database = new db('localhost','root','','bb','utf8'); // initilize database connection
+
+$dbHost = 'localhost';
+$dbUser = 'root';
+$dbPass = '';
+$dbDatabase = 'bb';
+
+$database = new db($dbHost,$dbUser,$dbPass,$dbDatabase,'utf8'); // initilize database connection
 
 $queryStr = "SELECT * FROM user WHERE username = '" . $name . "' AND password LIKE '" . $pass . "' LIMIT 1; ";
 // string above constructed: "SELECT * FROM user WHERE username = 'anton' AND password LIKE 'anton1' LIMIT 1; "

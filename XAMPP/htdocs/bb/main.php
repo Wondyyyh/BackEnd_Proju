@@ -1,59 +1,76 @@
-<!-- include 'db.php';
-
-$dbhost = 'localhost';
-$dbuser = 'root';
-$dbpass = '';
-$dbname = 'example';
-
-$db = new db($dbhost, $dbuser, $dbpass, $dbname, 'utf8');
-$queryStr = "SELECT id, title, author from thread WHERE 1; ";
-
-$count =  -->
 <?php
-// Database connection parameters
-$hostname = 'localhost';
-$username = 'root';
-$password = ''; // Your database password (if any)
-$database = 'bb';
+session_start();
+if (!isset($_SESSION["username"])) {
+    // user not logged in, redirect to index.php
+    header("Location: index.php");
+} 
+else 
+{
+    include("db.php");
 
-// Author ID to filter threads
-$sql = "SELECT id FROM user WHERE username = $username";
+    $dbHost = 'localhost';
+    $dbUser = 'root';
+    $dbPass = '';
+    $dbDatabase = 'bb';
 
-// $authorId = SELECT id FROM `user` WHERE 1; // Replace with the desired author ID
+    $database = new db($dbHost, $dbUser, $dbPass, $dbDatabase, 'utf8'); // initilize database connection
 
-// Create a new mysqli connection
-$mysqli = new mysqli($hostname, $username, $password, $database);
+    $queryStr = "SELECT thread.id AS id, title, author, username FROM thread, user WHERE thread.author=user.id; ";
 
-// Check for connection errors
-if ($mysqli->connect_error) {
-    die("Connection failed: " . $mysqli->connect_error);
-}
+    $listingStr = "<ul>";
 
-// SQL query to select titles from the 'thread' table for a specific author ID
-$sql = "SELECT title FROM thread WHERE author = ?";
+    $threadData = $database->query($queryStr); // execute query and store results 
+    $count = $threadData->numRows();
 
-// Prepare the statement
-$stmt = $mysqli->prepare($sql);
+    if ($count) { // check if a result was found
+        $results = $threadData->fetchAll();
+        foreach ($results as $singleRes) {
 
-// Bind the parameter (author ID) to the statement
-$stmt->bind_param("i", $authorId);
+            $authorName = $singleRes['username'];
+            $thrTitle = $singleRes['title'];
+            $thrId = $singleRes['id'];
 
-// Execute the query
-if ($stmt->execute()) {
-    // Bind the result
-    $stmt->bind_result($title);
+            $linkStr = "¨¨<a href='thread.php?id=" . $thrId . "' >" . $thrTitle . "</a>¨¨";
 
-    // Fetch and print the titles
-    while ($stmt->fetch()) {
-        echo $title . "<br>";
+            $listingStr .= "<h2><li> Kirjoittaja: " . $authorName . " - Aihe: " . $linkStr . "</li></h2>";
+        }
+
+        $listingStr .= "</ul>";
+
+    } else {
+        echo "<h1>Keskusteluja ei ole</h1>";
     }
 
-    // Close the statement
-    $stmt->close();
-} else {
-    echo "Error: " . $mysqli->error;
-}
 
-// Close the database connection
-$mysqli->close();
+    ?>
+    <!DOCTYPE html>
+    <html>
+
+    <head>
+        <title>Keskustelut</title>
+    </head>
+
+    <body>
+        <h1>Keskustelut</h1>
+
+        <?php echo $listingStr;
+
+
+require 'msgform.php';
+
+// Käytämme MsgForm-luokkaa saadaksemme lomakkeen
+$msgForm = new msgform();
+$form = $msgForm->getMsgForm('newThread.php');
+
+echo $form;
+
+
+} // end of else block
+
+
 ?>
+
+
+</body>
+
+</html>
