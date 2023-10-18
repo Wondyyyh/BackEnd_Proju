@@ -2,7 +2,8 @@
 
 class msgform
 {
-	protected $actionURL = 'newThread.php';
+	protected $actionURL = NULL;
+	protected $hiddenInputs ="";
 
 	public function __construct($actionURL = NULL) {
 		if(isset($actionURL)) $this->actionURL = $actionURL;
@@ -20,11 +21,17 @@ class msgform
 	        <label for="msg">Viesti:</label>
 	        <input type="text" id="msg" name="msg" required><br><br>
 
-	        <input type="submit" value="Submit">
-    	</form>
-    	';
+	        <input type="submit" value="Submit">';
+
+    	$formStr .= $this->hiddenInputs . '</form>';
 
     	return $formStr;
+
+	}
+
+	public function addHidden($name, $value)
+	{
+		$this->hiddenInputs .= '<input type="hidden" id="'.$name.'" name="'.$name.'" value="'.$value.'" >';
 
 	}
 
