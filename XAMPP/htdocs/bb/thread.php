@@ -41,8 +41,11 @@ if(!isset($_SESSION["username"]))
 
     // lets fetch all messages from database:
 
+    // $queryStr = "SELECT msg.id AS id, msg.title AS title, thread.title AS thrTit, msg.created AS created, content, username, user.id AS userid FROM msg, user, thread "
+    // 			. " WHERE msg.author=user.id AND msg.thread = thread.id AND thread.id = ".$id." ORDER BY msg.created ASC; ";
+
     $queryStr = "SELECT msg.id AS id, msg.title AS title, thread.title AS thrTit, msg.created AS created, content, username, user.id AS userid FROM msg, user, thread "
-    			. " WHERE msg.author=user.id AND msg.thread = thread.id AND thread.id = ".$id." ORDER BY msg.created ASC; ";
+    . " WHERE msg.author=user.id AND msg.thread = thread.id AND thread.id = ".$id." AND msg.hidden = '0' ORDER BY msg.created ASC; ";
 
     $listingStr="<ul>";
     $thrTit = "";
@@ -62,15 +65,24 @@ if(!isset($_SESSION["username"]))
             $thrTit =  $singleRes['thrTit'];
 
             $deleteStr=""; // string to contain deletion functionality
+            $editStr= ""; // string to contain edit functionality
             $authorUserId =  $singleRes['userid']; // D) Oman viestin poisto
-            if($authorUserId == $userID){
+
+            if($authorUserId == $userID){ //Delete message form here
                 // generate "Delete"-button/form
-                $deleteStr .= '<form action = "delmsg.php" method = "POST"><input type="hidden" name="msg" id="msg" value="$msgId"><input type="submit" value="Delete"></form>';
+                $deleteStr .= '<form action = "delmsg.php" method = "POST">
+                <input type="hidden" name="msg" id="msg" value="'.$msgId.'">
+                <input type="submit" value="Delete">
+                </form>';
+                $editStr .='<form action = "edit.php" method = "POST">
+                <input type="hidden" name="msg" id="msg" value="'.$msgId.'">
+                <input type="submit" value="Edit">
+                </form>';
             }
 
             $listingStr .= "<li> [ ". $msgCreat ." ] Kirjoittaja: " . $authorName . " - Aihe: " . $msgTitle 
             			. "<br/>"
-            			. "<p>" . $msgCont . $deleteStr . "</p>"
+            			. "<p>" . $msgCont . $deleteStr .  $editStr ."</p>"
             			. "</li>";
         }
 

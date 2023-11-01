@@ -30,7 +30,6 @@ if(!isset($_SESSION["username"]))
             $thrId = $singleRes['id'];
 
             $linkStr = "<a href='thread.php?id=" . $thrId . "' >" . $thrTitle . "</a>";
-
             $listingStr .= "<li> Kirjoittaja: " . $authorName . " - Aihe: " . $linkStr . "</li>";
         }
 
