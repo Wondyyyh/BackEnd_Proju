@@ -1,12 +1,12 @@
 <?php
-session_start();
+include("include.php"); // <--- IMPORTANT!!! this file contains basic setup for our app's global features used on every page
+
 $id=0;
-if(!isset($_SESSION["username"]))
-{
-	// user not logged in, redirect to index.php
-	header("Location: index.php");
-}else{
-	/* TO DO: fetch all messages of this thread and display in order neatly  */
+$thrAuthorUserId = 0;
+$msgCount=0;
+
+	/* fetch all messages of this thread and display in order neatly  */
+
 	if ($_SERVER["REQUEST_METHOD"] == "GET") { // check that GET data was submitted
 	  
 	  $id = $_GET['id'];
@@ -18,16 +18,8 @@ if(!isset($_SESSION["username"]))
 	  header("Location: main.php"); // redirect to main page in case of error
 	}
 
-	include("db.php");
 
-    $dbHost = 'localhost';
-    $dbUser = 'root';
-    $dbPass = '';
-    $dbDatabase = 'bb';
-
-    $database = new db($dbHost,$dbUser,$dbPass,$dbDatabase,'utf8'); // initilize database connection
-
-    // D) Oman viestin poistoa varten haetaan ensin käyttäjän tunniste (id) tietokannasta:
+    //  Oman viestin poistoa varten haetaan ensin käyttäjän tunniste (id) tietokannasta:
     $usrQueryStr = "SELECT id FROM user WHERE username = '" . $_SESSION["username"] . "' LIMIT 1;";
     $usrData = $database->query($usrQueryStr); // execute query and store results 
 
@@ -41,11 +33,8 @@ if(!isset($_SESSION["username"]))
 
     // lets fetch all messages from database:
 
-    // $queryStr = "SELECT msg.id AS id, msg.title AS title, thread.title AS thrTit, msg.created AS created, content, username, user.id AS userid FROM msg, user, thread "
-    // 			. " WHERE msg.author=user.id AND msg.thread = thread.id AND thread.id = ".$id." ORDER BY msg.created ASC; ";
-
-    $queryStr = "SELECT msg.id AS id, msg.title AS title, thread.title AS thrTit, msg.created AS created, content, username, user.id AS userid FROM msg, user, thread "
-    . " WHERE msg.author=user.id AND msg.thread = thread.id AND thread.id = ".$id." AND msg.hidden = '0' ORDER BY msg.created ASC; ";
+    $queryStr = "SELECT msg.id AS id, msg.title AS title, thread.title AS thrTit, msg.created AS created, content, username, user.id AS userid, thread.author AS thrAuth FROM msg, user, thread "
+    			. " WHERE msg.author=user.id AND msg.thread = thread.id AND thread.id = ".$id." AND msg.hidden = FALSE ORDER BY msg.created ASC; ";
 
     $listingStr="<ul>";
     $thrTit = "";
@@ -56,6 +45,7 @@ if(!isset($_SESSION["username"]))
     if($count){ // check if a result was found
         $results = $threadData->fetchAll();
         foreach($results as $singleRes){
+            $msgCount++; // keep track of message count
             
             $authorName = $singleRes['username'];
             $msgTitle = $singleRes['title'];
@@ -63,26 +53,22 @@ if(!isset($_SESSION["username"]))
             $msgCont = $singleRes['content'];
             $msgCreat = $singleRes['created'];
             $thrTit =  $singleRes['thrTit'];
+            $thrAuthorUserId = $singleRes['thrAuth'];
 
             $deleteStr=""; // string to contain deletion functionality
-            $editStr= ""; // string to contain edit functionality
-            $authorUserId =  $singleRes['userid']; // D) Oman viestin poisto
+            $editStr="";
 
-            if($authorUserId == $userID){ //Delete message form here
+            $authorUserId =  $singleRes['userid']; // D) Oman viestin poisto
+            if($authorUserId == $userID){
                 // generate "Delete"-button/form
-                $deleteStr .= '<form action = "delmsg.php" method = "POST">
-                <input type="hidden" name="msg" id="msg" value="'.$msgId.'">
-                <input type="submit" value="Delete">
-                </form>';
-                $editStr .='<form action = "edit.php" method = "POST">
-                <input type="hidden" name="msg" id="msg" value="'.$msgId.'">
-                <input type="submit" value="Edit">
-                </form>';
+                $deleteStr .= '<form action = "delmsg.php" method = "POST"><input type="hidden" name="msg" id="msg" value="'.$msgId.'"><input type="submit" value="Delete"></form>';
+                // generate edit button:
+                $editStr .= '<form action = "edit.php" method = "POST"><input type="hidden" name="msg" id="msg" value="'.$msgId.'"><input type="submit" value="Edit"></form>';
             }
 
             $listingStr .= "<li> [ ". $msgCreat ." ] Kirjoittaja: " . $authorName . " - Aihe: " . $msgTitle 
             			. "<br/>"
-            			. "<p>" . $msgCont . $deleteStr .  $editStr ."</p>"
+            			. "<p>" . $msgCont . $deleteStr . $editStr . "</p>"
             			. "</li>";
         }
 
@@ -95,7 +81,7 @@ if(!isset($_SESSION["username"]))
 
     /*
 Toiminto:
-B) Uuden vastauksen lisäys ketjuun
+ Uuden vastauksen lisäys ketjuun
 
 - lisätään lomake viestin luomiseen:
 
@@ -105,6 +91,19 @@ $form = new msgform();
 $form->addHidden('thread', $id);
 $formHTMLstr = $form->getMsgForm("newmsg.php"); 
 
+$delThrStr="";
+
+// echo "thrAuthorUserId: " . $thrAuthorUserId . "<br>";
+// echo "userID: " . $userID . "<br>";
+// echo "result: " .($thrAuthorUserId == $userID) . "<br>";
+// echo "msgCount: " . $msgCount . "<br>";
+
+//Toiminto: koko ketjun poisto jos käyttäjä on author ja vastauksia ei ole (yksi viesti eli avausviesti sallitaan)
+if($thrAuthorUserId == $userID && $msgCount <2){ 
+    $delThrStr .= '<form action = "delthr.php" method = "POST">
+    <input type="hidden" name="thrid" id="thrid" value="'.$id.'">
+    <input type="submit" value="Delete thread"></form>';   
+}
 
 ?>
 
@@ -113,8 +112,9 @@ $formHTMLstr = $form->getMsgForm("newmsg.php");
 <head>
     <title>Keskustelu</title>
 </head>
-<body>
-    <h1>  <?php echo $thrTit; ?> </h1>
+<body> <?php printMenu(); ?>
+    <h1>  <?php echo $thrTit; ?> ( <?php echo $msgCount; ?> viestiä)</h1>
+    <div> <?php echo $delThrStr; ?>  </div>
     <div> <?php echo $listingStr; ?>  </div>
     <div><h2>Reply:</h2> <?php echo $formHTMLstr; ?>  </div>
 
@@ -122,5 +122,5 @@ $formHTMLstr = $form->getMsgForm("newmsg.php");
 </html>
 
 <?php
-}
+
 ?>

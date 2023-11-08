@@ -1,21 +1,10 @@
 <?php
-session_start();
-if(!isset($_SESSION["username"]))
-{
-	// user not logged in, redirect to index.php
-	header("Location: index.php");
-}else{
 
-    include("db.php");
+include("include.php"); // <--- IMPORTANT!!! this file contains basic setup for our app's global features used on every page
 
-    $dbHost = 'localhost';
-    $dbUser = 'root';
-    $dbPass = '';
-    $dbDatabase = 'bb';
 
-    $database = new db($dbHost,$dbUser,$dbPass,$dbDatabase,'utf8'); // initilize database connection
-
-    $queryStr = "SELECT thread.id AS id, title, author, username FROM thread, user WHERE thread.author=user.id; ";
+    $queryStr = "SELECT thread.id AS id, title, author, username FROM thread, user WHERE thread.author=user.id AND thread.hidden=FALSE; ";
+ 
 
     $listingStr="<ul>";
 
@@ -23,17 +12,23 @@ if(!isset($_SESSION["username"]))
     $count = $threadData->numRows();
     if($count){ // check if a result was found
         $results = $threadData->fetchAll();
-        foreach($results as $singleRes){
-            
+        foreach($results as $singleRes){            
+
             $authorName = $singleRes['username'];
             $thrTitle = $singleRes['title'];
             $thrId = $singleRes['id'];
 
             $linkStr = "<a href='thread.php?id=" . $thrId . "' >" . $thrTitle . "</a>";
-            $listingStr .= "<li> Kirjoittaja: " . $authorName . " - Aihe: " . $linkStr . "</li>";
+
+            $listingStr .= 
+            "<li> Kirjoittaja: " . 
+            $authorName . " - Aihe: " . 
+            $linkStr .           
+            "</li>";
         }
 
-        $listingStr .= "</ul>";
+        $listingStr .= "<br/>" .
+        "</ul>";
 
     }else{
       echo "<h1>Keskusteluja ei ole</h1>";
@@ -41,7 +36,7 @@ if(!isset($_SESSION["username"]))
 
 /*
 Toiminto:
-A) Uuden keskustelun aloitus
+Uuden keskustelun aloitus
 
 - lisätään lomake keskustelun luomiseen:
 
@@ -57,15 +52,12 @@ $formHTMLstr = $form->getMsgForm("newthread.php");
 <head>
     <title>Keskustelut</title>
 </head>
-<body>
+<body> <?php printMenu(); ?>
     <h1>Keskustelut</h1>
     
     <?php echo $listingStr;
 
     echo $formHTMLstr;
-
-}// end of else block
-
 
 ?>
 

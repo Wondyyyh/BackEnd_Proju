@@ -2,7 +2,7 @@
 
 /*
 Toiminto:
-A) Uuden keskustelun aloitus
+Uuden keskustelun aloitus
 
 - vastaanottaa sivun main.php lomakkeelta msgform tiedot post-pyyntönä.
 - luo uuden keskusteluketjun sekä siihen liittyvän uuden viestin.
@@ -10,13 +10,10 @@ A) Uuden keskustelun aloitus
 
 */
 
-session_start();
+include("include.php"); // <--- IMPORTANT!!! this file contains basic setup for our app's global features used on every page
+
 $id=0;
-if(!isset($_SESSION["username"]))
-{
-	// user not logged in, redirect to index.php
-	header("Location: index.php");
-}else{
+
 	/* TO DO: fetch all messages of this thread and display in order neatly  */
 	if ($_SERVER["REQUEST_METHOD"] == "POST") { // check that POST data was submitted
 	  
@@ -30,14 +27,6 @@ if(!isset($_SESSION["username"]))
 	  header("Location: main.php"); // redirect to main page in case of error
 	}
 
-	include("db.php");
-
-    $dbHost = 'localhost';
-    $dbUser = 'root';
-    $dbPass = '';
-    $dbDatabase = 'bb';
-
-    $database = new db($dbHost,$dbUser,$dbPass,$dbDatabase,'utf8'); // initilize database connection
 
     $usrQueryStr = "SELECT id FROM user WHERE username = '" . $_SESSION["username"] . "' LIMIT 1;";
     $usrData = $database->query($usrQueryStr); // execute query and store results 
@@ -52,7 +41,7 @@ if(!isset($_SESSION["username"]))
     	// INSERT INTO `thread` (`id`, `title`, `author`, `created`, `hidden`) VALUES (NULL, 'fghf hg hg g', '1', current_timestamp(), '0');
 
     	$insertThrQuery = "INSERT INTO `thread` (`title`, `author`) VALUES ('".$title."', '".$userID."'); ";
-    	
+    	echo $insertThrQuery."<br>";
     	$insertResults = $database->query($insertThrQuery);
     	if(!$insertResults->affectedRows()) {
     		// failure in thread insertion, continue with nothing
@@ -72,6 +61,6 @@ if(!isset($_SESSION["username"]))
     }
     header("Location: main.php"); // redirect to main page in case of error
 
-}
+
 
 ?>

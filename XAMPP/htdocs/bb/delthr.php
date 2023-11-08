@@ -1,16 +1,16 @@
 <?php
-// delmsg.php - oman viestin poisto 
+// delthr.php
 
 include("include.php"); // <--- IMPORTANT!!! this file contains basic setup for our app's global features used on every page
 
-$msgId=0;
+$thrID=0;
 $userID=0;
 
 	if ($_SERVER["REQUEST_METHOD"] == "POST") { // check that GET data was submitted
 	  
-	  $msgId = $_POST['msg'];
+	  $thrID = $_POST['thrid'];
 	  
-	  if (empty($msgId)) { // check that necessary values were submitted
+	  if (empty($thrID)) { // check that necessary values were submitted
 	    header("Location: main.php"); // redirect to main page in case of error
 	  } 
 	}else{
@@ -30,7 +30,7 @@ $userID=0;
     	header("Location: main.php");
     }
     
-    $delQueryStr = "UPDATE `msg` SET hidden=TRUE WHERE id = '" . $msgId . "' AND author = '".$userID."';"; 
+    $delQueryStr = "UPDATE `thread` SET hidden=TRUE WHERE id = '" . $thrID . "' AND author = '".$userID."';"; 
 	
 	$delData = $database->query($delQueryStr); // execute query and store results 
 
@@ -40,6 +40,7 @@ $userID=0;
     }else{
     	// react to failure if necessary
     }
-    header('Location: ' . $_SERVER['HTTP_REFERER']); // bit unsafe but dirty&working redirect back to previous page
+    header("Location: main.php");
+
 
 ?>

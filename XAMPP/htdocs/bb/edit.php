@@ -1,18 +1,26 @@
 <?php
-//edit.php
+// edit.php
+include("include.php"); // <--- IMPORTANT!!! this file contains basic setup for our app's global features used on every page
 
-// include("include.php");
-
-$msg = NULL;
-if($_SERVER["REQUEST_METHOD"]== "POST"){
-
-    $msg = $_POST['msg'];
-    if(empty($msg)){
-       header("Location: main.php");
-    }
+$msg =NULL;
+if ($_SERVER["REQUEST_METHOD"] == "POST") { // check that POST data was submitted
+        
+  $msg = $_POST['msg'];
+ 
+  if ( empty($msg) ) { // check that necessary values were submitted
+    header("Location: main.php"); // redirect to main page in case of error
+  }
+}else{
+  header("Location: main.php"); // redirect to main page in case of error
 }
-else header("Location: main.php");
 
+/*
+Toiminto:
+Viestin muokkaus
+
+- lisätään lomake muokkaukseen:
+
+*/
 include("msgform.php");
 $form = new msgform();
 $formHTMLstr = $form->getMsgForm("editmsg.php", $msg);
@@ -21,17 +29,18 @@ $formHTMLstr = $form->getMsgForm("editmsg.php", $msg);
 ?>
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Keskustelut</title>
-    </head>
-    <body>
-        <?php printMenu(); ?>
-        <h1>Edit</h1>
+<head>
+    <title>Keskustelut</title>
+</head>
+<body> <?php printMenu(); ?>
+    <h1>Edit</h1>
+    
+    <?php 
 
-        <?php
-            echo $formHTMLstr;
-        ?>
+    echo $formHTMLstr;
+
+?>
 
 
-    </body>
+</body>
 </html>

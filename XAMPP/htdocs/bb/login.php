@@ -1,4 +1,9 @@
 <?php
+
+// !! NOTICE !!
+// We're mnot using the basic include.php in this file since user should not be logged in 
+// at this point and we want to avoid security issues or unnecessary redirect due to that 
+
 session_start(); // start PHP session to remember user login info across page loads
 if ($_SERVER["REQUEST_METHOD"] == "POST") { // check that POST data was submitted
   // collect value of input field
@@ -18,13 +23,16 @@ include("db.php");
 
 $dbHost = 'localhost';
 $dbUser = 'root';
-$dbPass = '';
+$dbPass = ''; 
 $dbDatabase = 'bb';
 
 $database = new db($dbHost,$dbUser,$dbPass,$dbDatabase,'utf8'); // initilize database connection
 
 $queryStr = "SELECT * FROM user WHERE username = '" . $name . "' AND password LIKE '" . $pass . "' LIMIT 1; ";
 // string above constructed: "SELECT * FROM user WHERE username = 'anton' AND password LIKE 'anton1' LIMIT 1; "
+
+//echo $queryStr;
+//exit();
 
 $userData = $database->query($queryStr); // execute query and store results in $db object userData
 

@@ -14,5 +14,8 @@
 
         <input type="submit" value="Submit">
     </form>
+    <form action="sign.php">
+        <input type="submit" value="Create Account">
+    </form>
 </body>
 </html>
